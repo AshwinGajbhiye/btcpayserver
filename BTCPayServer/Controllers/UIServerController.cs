@@ -1077,6 +1077,7 @@ namespace BTCPayServer.Controllers
             {
                 ServerName = server.ServerName,
                 ContactUrl = server.ContactUrl,
+                ServerTimeZone = server.ServerTimeZone,
                 CustomTheme = theme.CustomTheme,
                 CustomThemeExtension = theme.CustomThemeExtension,
                 CustomThemeCssUrl = await _uriResolver.Resolve(Request.GetAbsoluteRootUri(), theme.CustomThemeCssUrl),
@@ -1113,6 +1114,25 @@ namespace BTCPayServer.Controllers
                 server.ContactUrl = !string.IsNullOrWhiteSpace(vm.ContactUrl)
                     ? vm.ContactUrl.IsValidEmail() ? $"mailto:{vm.ContactUrl}" : vm.ContactUrl
                     : null;
+                settingsChanged = true;
+            }
+
+            if (!string.IsNullOrEmpty(vm.ServerTimeZone))
+            {
+                try
+                {
+                    TimeZoneInfo.FindSystemTimeZoneById(vm.ServerTimeZone);
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    ModelState.AddModelError(nameof(vm.ServerTimeZone), StringLocalizer["Invalid time zone"]);
+                    return View(vm);
+                }
+            }
+
+            if (server.ServerTimeZone != vm.ServerTimeZone)
+            {
+                server.ServerTimeZone = vm.ServerTimeZone;
                 settingsChanged = true;
             }
 
